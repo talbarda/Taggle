@@ -1,2 +1,2 @@
 # Taggle
-Open source system API + UI for managing tagging data tasks
+Open source platform API + UI for managing tagging data tasks
