@@ -1,0 +1,30 @@
+Features:
+  - Roles - tagger, reviewer, admin
+  - Teams - adding a role for a tagging task for a group of people
+
+  - Input data requirements
+    - worklist types - list of jsons, csv, excel, google spreadsheet
+    - possiblilty to add more data after tagging started
+    - input data types - string/date/number/url/image url/image/url to fetch + xpath/etc
+
+  - Output data requirements
+    - "comment" field in each tagging output item - per field and per item
+    - Confidence score (1 to 5 stars, if possible)
+    - output data types - free text/"radio button"/multiple choice + "other"/image anotation (FUTURE)
+    - option to add multiple answers
+
+
+  - Tagging requirements
+    - Instructions (expand/collapse option)
+    - Multiple taggers per tagging worklist
+    - Parallel tagging
+    - Review (comments) + Feedback (Approval of tagging items and tagger work)
+    - Tagging process record (?) - possiblity to (Screen) record the tagging process
+    - Fix input data during tagging (save original) + option to publish fix for other taggers
+    - Status dashboard - how many items were already tagged, taggers statistics
+    - Tagging data dashboard - taggers answers + confidence score + log
+    - "skip" option (requeue the tagging item + log the user has skipped it)
+    - log - who tagged/when (start + end times)
+    - option to see other taggers answer (configurable per tagging task)
+  
+  
