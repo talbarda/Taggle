@@ -1,0 +1,314 @@
+swagger: '2.0'
+info:
+  title: Taggle API
+  description: >
+    This api is the backend for taggle platform service
+  version: 1.0.0-beta
+host: api.taggle.com
+schemes:
+  - https
+basePath: /taggle/v1
+produces:
+  - application/json
+  - application/x-gzip
+securityDefinitions:
+  Basic Authentication:
+    type: basic
+    description: >
+      Basic http authentication using username and password. Used only for the /auth/token endpoint to exchage it with a new bearer token.
+  Bearer Token:
+    type: apiKey
+    description: >
+      A bearer token to be used for all endpoints except for the /users/login
+      endpoint.
+    name: Authorization
+    in: header
+
+paths:
+  /auth/token:
+    post:
+      summary: Gets details about the token for an authenticated users sent in the basic authentication.
+      description: Gets details about the token for an authenticated users sent in the basic authentication.
+      tags:
+        - Authentication
+        - Token
+      security:
+        - Basic Authentication: []
+      responses:
+        '201':
+          description: The created token details
+          schema:
+            $ref: '#/definitions/Token'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /auth/me:
+    get:
+      summary: Gets the authenticated user details
+      description: Gets the authenticated user details
+      tags:
+        - Authentication
+        - Token
+      security:
+        - Bearer Token: []
+      responses:
+        '200':
+          description: The authenticated user details
+          schema:
+            $ref: '#/definitions/UserDetails'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+            
+  /dataset:
+    post:
+      summary: Creates a new dataset to work on.
+      description: Creates a new dataset to work on.
+      tags:
+        - Dataset
+      security:
+        - Bearer Token: []
+      responses:
+        '201':
+          description: The created dataset, including it's new generated id
+          schema:
+            $ref: '#/definitions/Dataset'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+            
+  /dataset/{datasetId}:
+    post:
+      summary: Adds rows to a dataset
+      description: Adds rows to a dataset
+      tags:
+        - Dataset
+      security:
+        - Bearer Token: []
+      parameters:
+        - name: datasetId
+          in: path
+          description: 'The dataset id'
+          required: true
+          type: string
+        - name: datasetRows
+          in: body
+          description: 'The dataset rows to add.'
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/DatasetRow'
+      responses:
+        '201':
+          description: The updated dataset metadata
+          schema:
+            $ref: '#/definitions/DatasetMetdata'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+    
+definitions:
+  Dataset:
+    type: object
+    properties:
+      metadata:
+        $ref: '#/definitions/DatasetMetdata'
+      data:
+        $ref: '#/definitions/DatasetContent'
+  DatasetMetdata:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      description:
+        type: string
+      createdBy:
+        type: boolean
+      isPrivate:
+        type: boolean
+      numRows:
+        type: integer
+        format: int64
+        
+  DatasetContent:
+    type: object
+    description: The dataset content
+    properties:
+      columns:
+        type: array
+        items:
+          $ref: '#/definitions/DatasetColumn'
+      rows:
+        type: array
+        items:
+          $ref: '#/definitions/DatasetRow'
+  DatasetRow:
+    type: object
+    additionalProperties:
+      type: object
+  DatasetColumnMetadata:
+    type: object
+    additionalProperties:
+      type: object
+  DatasetColumn:
+    type: object
+    properties:
+      name:
+        type: string
+      friendlyName:
+        type: string
+      defaultDisplayOptions:
+        $ref: '#/definitions/DatasetColumnMetadata'
+      columnType:
+        type: string
+        enum:
+         - Integer
+         - Float
+         - Boolean
+         - String
+         - Date
+         - DateTime
+         - URL
+         - ImageURL
+         - ImageBase64
+         - Event
+         - Timeline
+  Integer:
+    type: integer
+  Float:
+    type: number
+    format: float
+  Boolean:
+    type: boolean
+  String:
+    type: string
+  Date:
+    type: string
+    format: date
+  DateTime:
+    type: string
+    format: date-time
+  URL:
+    type: string
+  Byte:
+    description: base64 encoded characters
+    type: string
+    format: byte    
+  ImageBase:
+    type: object
+    properties:
+      width:
+        $ref: '#/definitions/Integer'
+      height:
+        $ref: '#/definitions/Integer'
+  ImageURL:
+      allOf:
+        - $ref: '#/definitions/ImageBase'
+        - properties:
+            url:
+              $ref: '#/definitions/URL'
+  ImageBase64:
+      allOf:
+        - $ref: '#/definitions/ImageBase'
+        - properties:
+            base64Content:
+              type: array
+              items:
+                $ref: '#/definitions/Byte'
+  Event:
+    type: object
+    properties:
+      dateTime:
+        $ref: '#/definitions/DateTime'
+      column:
+        $ref: '#/definitions/DatasetColumn'
+      value:
+        type: object
+  Timeline:
+    type: object
+    properties:
+      sorted:
+        type: boolean
+      sortDirection:
+        type: string
+        enum:
+        - ASC
+        - DESC
+        - RANDOM
+      events:
+        type: array
+        items:
+          $ref: '#/definitions/Event'
+      
+  # Authenticantion (/auth/*) objects
+  Token :
+    type: object
+    properties:
+      scope:
+        type: string
+      tokenType:
+        type: string
+        enum:
+          - bearer
+      expiresIn:
+        type: integer
+        format: int64
+      tokenContent:
+        type: string
+
+  UserDetails:
+    type: object
+    properties:
+      firstName:
+        type: string
+      lastName:
+        type: string
+      email:
+        type: string
+      userRoles:
+        $ref: '#/definitions/UserRoles'
+
+  UserRoles:
+    type: object
+    properties:
+      roles:
+        type: array
+        items:
+          $ref: '#/definitions/UserRole'
+
+  UserRole:
+    type: object
+    properties:
+      scope:
+        type: string
+      roleName:
+        type: string
+ # Authenticantion (/auth/*) objects
+ 
+  Error:
+    type: object
+    properties:
+      timestamp:
+        type: integer
+        format: int64
+      status:
+        type: integer
+        format: int32
+      error:
+        type: string
+      message:
+        type: string
+      path:
+        type: string
+    required:
+      - timestamp
+      - status
+      - error
+      - message
