@@ -74,7 +74,7 @@ paths:
         '201':
           description: The created dataset, including it's new generated id
           schema:
-            $ref: '#/definitions/Dataset'
+            $ref: '#/definitions/DatasetMetdata'
         default:
           description: Unexpected error
           schema:
@@ -94,6 +94,12 @@ paths:
           description: 'The dataset id'
           required: true
           type: string
+        - name: addToRelatedTasks
+          in: query
+          description: 'Indicator wheter to add the rows to tasks with this dataset'
+          required: false
+          type: boolean
+          default: false
         - name: datasetRows
           in: body
           description: 'The dataset rows to add.'
@@ -111,8 +117,163 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-    
+            
+  /task/schema:
+    post:
+      summary: Creates a new tagging task schema to create tasks from.
+      description: Creates a new tagging task schema to create tasks from.
+      tags:
+        - Tasl
+      security:
+        - Bearer Token: []
+      parameters:
+        - name: taggingTaskSchema
+          in: body
+          description: 'The task schema to add'
+          required: true
+          schema:
+            $ref: '#/definitions/TaggingTaskSchema'
+      responses:
+        '201':
+          description: The created tagging task schema, including it's new generated id
+          schema:
+            $ref: '#/definitions/TaggingTaskSchema'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'    
 definitions:
+  TaggingTaskSchema:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      description:
+        type: string
+      instructions:
+        type: string
+      createdBy:
+        type: boolean
+      taggingItems:
+        $ref: '#/definitions/TaggingItemSchema'
+  TaggingItemSchema:
+    type: object
+    properties:
+      description:
+        type: string
+        description: The tagging item description, e.g. - a question to answer on
+      regexValidation:
+        type: string
+      itemType:
+        type: string
+        enum:
+         - FreeTextTaggingItem
+         - ChoicesTaggingItem
+         - ImageAnotationTaggingItem
+         - TextAnotationTaggingItem
+      
+  TaggingItem:
+    discriminator: itemType
+    type: object
+    properties:
+      description:
+        type: string
+        description: The tagging item description, e.g. - a question to answer on
+      userComment:
+        type: string
+      confience:
+        type: integer
+        format: int32
+        minimum: 1.0
+        maximum: 5.0
+  FreeTextTaggingItem:
+      allOf:
+        - $ref: '#/definitions/TaggingItem'
+        - properties:
+            freeText:
+              type: string
+  ChoicesTaggingItem:
+      allOf:
+        - $ref: '#/definitions/TaggingItem'
+        - properties:
+            maxOptionsToChoose:
+              type: integer
+              format: int32
+            possibleOptions:
+              type: array
+              items:
+                type: string
+            chosenOptions:
+              type: array
+              items:
+                type: string
+  ImageAnotationTaggingItem:
+      allOf:
+        - $ref: '#/definitions/TaggingItem'
+        - properties:
+            anotations:
+              type: array
+              items:
+                $ref: '#/definitions/ImageAnotation'
+  ImageAnotation:
+    type: object
+    properties:
+      coordinates:
+        type: array
+        items:
+          $ref: '#/definitions/ImageAnotationCoordinate'
+      label:
+        type: string
+  ImageAnotationCoordinate:
+    type: object
+    required: 
+      - x
+      - y
+    properties:
+      x:
+        type: number
+        format: double
+      y:
+        type: number
+        format: double
+      z:
+        type: number
+        format: double
+      
+  TextAnotationTaggingItem:
+      allOf:
+        - $ref: '#/definitions/TaggingItem'
+        - properties:
+            anotations:
+              type: array
+              items:
+                $ref: '#/definitions/TextAnotation'
+  TextAnotation:
+    type: object
+    properties:
+      ranges:
+        type: array
+        items:
+          $ref: '#/definitions/TextAnotationRange'
+      label:
+        type: string
+  TextAnotationRange:
+    type: object
+    required: 
+      - startIndex
+      - endIndex
+    properties:
+      startIndex:
+        type: integer
+        format: int32
+      endIndex:
+        type: integer
+        format: int32
+      includeEndIndex:
+        type: boolean
+        default: true
   Dataset:
     type: object
     properties:
@@ -141,14 +302,14 @@ definitions:
     type: object
     description: The dataset content
     properties:
-      columns:
-        type: array
-        items:
-          $ref: '#/definitions/DatasetColumn'
       rows:
         type: array
         items:
           $ref: '#/definitions/DatasetRow'
+      columns:
+        type: array
+        items:
+          $ref: '#/definitions/DatasetColumn'
   DatasetRow:
     type: object
     additionalProperties:
