@@ -241,24 +241,9 @@ definitions:
         type: string
       createdBy:
         type: boolean
-      datasetId:
-        type: string
-      schemaId:
-        type: string
-        
-  TaggingTask:
-    type: object
-    properties:
-      id:
-        type: string
-      name:
-        type: string
-      description:
-        type: string
-      instructions:
-        type: string
-      createdBy:
+      allowUsersToEditInput:
         type: boolean
+        default: false
       datasetId:
         type: string
       schemaId:
