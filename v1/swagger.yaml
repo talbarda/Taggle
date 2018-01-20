@@ -117,13 +117,13 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'
-            
   /task/schema:
     post:
       summary: Creates a new tagging task schema to create tasks from.
       description: Creates a new tagging task schema to create tasks from.
       tags:
-        - Tasl
+        - Task
+        - Schema
       security:
         - Bearer Token: []
       parameters:
@@ -142,7 +142,128 @@ paths:
           description: Unexpected error
           schema:
             $ref: '#/definitions/Error'    
+  /task:
+    post:
+      summary: Creates a new tagging task to work on.
+      description: Creates a new tagging task to work on.
+      tags:
+        - Task
+        - Schema
+        - Dataset
+      security:
+        - Bearer Token: []
+      parameters:
+        - name: taggingTask
+          in: body
+          description: 'The task to add'
+          required: true
+          schema:
+            $ref: '#/definitions/TaggingTask'
+      responses:
+        '201':
+          description: The created tagging task, including it's new generated id
+          schema:
+            $ref: '#/definitions/TaggingTask'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /task/{taskId}:
+    get:
+      summary: Gets an existing tagging task to work on.
+      description: Gets an existing tagging task to work on.
+      tags:
+        - Task
+        - Schema
+        - Dataset
+      security:
+        - Bearer Token: []
+      parameters:
+        - name: taskId
+          in: path
+          description: 'The task id get'
+          required: true
+          type: string
+      responses:
+        '201':
+          description: The created tagging task, including it's new generated id
+          schema:
+            $ref: '#/definitions/TaggingTask'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
+  /task/{taskId}/itemsToTag:
+    get:
+      summary: Gets items to tag for a specific task
+      description: Gets items to tag for a specific task
+      tags:
+        - Task
+        - Schema
+        - Dataset
+      security:
+        - Bearer Token: []
+      parameters:
+        - name: taskId
+          in: path
+          description: 'The task id get'
+          required: true
+          type: string
+        - name: numItemsToGet
+          in: query
+          description: 'The amount of items to get'
+          required: false
+          type: integer
+          format: int32
+          default: 1
+      responses:
+        '200':
+          description: The numItemsToGet items to tag in a form of a dataset
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/DatasetContent'
+        default:
+          description: Unexpected error
+          schema:
+            $ref: '#/definitions/Error'
 definitions:
+  TaggingTask:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      description:
+        type: string
+      instructions:
+        type: string
+      createdBy:
+        type: boolean
+      datasetId:
+        type: string
+      schemaId:
+        type: string
+        
+  TaggingTask:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      description:
+        type: string
+      instructions:
+        type: string
+      createdBy:
+        type: boolean
+      datasetId:
+        type: string
+      schemaId:
+        type: string
+        
   TaggingTaskSchema:
     type: object
     properties:
@@ -157,7 +278,9 @@ definitions:
       createdBy:
         type: boolean
       taggingItems:
-        $ref: '#/definitions/TaggingItemSchema'
+        type: array
+        items:
+          $ref: '#/definitions/TaggingItemSchema'
   TaggingItemSchema:
     type: object
     properties:
